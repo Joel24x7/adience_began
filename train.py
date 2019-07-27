@@ -10,13 +10,12 @@ from data_prep import get_list_from_h5py
 from model import Began
 
 data_name = 'adience'
-project_num = 1.0
+project_num = 1.1
 
 def train(model, epochs=100):
 
     np.random.RandomState(123)
     tf.set_random_seed(123)
-    data_name = 'adience'
 
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
@@ -28,10 +27,10 @@ def train(model, epochs=100):
     x, z, lr, kt = model.initInputs()
     dis_loss, gen_loss, d_x_loss, d_z_loss = model.loss(x, z, kt)
     dis_opt, gen_opt = model.optimizer(dis_loss, gen_loss, lr)
-    sample = model.get_sample()
+    sample = model.get_sample(3)
 
     #Setup data
-    data = get_list_from_h5py()
+    data = get_list_from_h5py(data_name)
     start_time = time.time()
 
     #Setup inputs
@@ -41,7 +40,7 @@ def train(model, epochs=100):
     #hyperparameters
     lrate = 0.00008
     lambda_kt = 0.001
-    gamma = 0.5
+    gamma = 0.4
     kt_var = 0.0
     epoch_drop = 3
 
@@ -91,14 +90,13 @@ def train(model, epochs=100):
                     saver.save(sess, './{}/began'.format(models_dir), global_step = epoch)
 
                     images = sess.run(sample)
-                    #images = (images + 1.0) / 2.0
                     for i in range(images.shape[0]):
-                        tmp_name = '{}/train_image{}.png'.format(samples_dir, i)
+                        tmp_name = '{}/train_image{}.png'.format(samples_dir, curr_step)
                         img = images[i, :, :, :]
                         plt.imshow(img)
                         plt.savefig(tmp_name)
 
-                        x_name = '{}/data_image{}.png'.format(samples_dir, i)
+                        x_name = '{}/data_image{}.png'.format(samples_dir, curr_step)
                         data_img = batch_data[i, :, :, :]
                         plt.imshow(data_img)
                         plt.savefig(x_name)
@@ -109,7 +107,7 @@ def test(model):
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
 
     #Setup model
-    _, z, _, _ = model.initInputs()
+    # _, z, _, _ = model.initInputs()
     sample = model.get_sample(reuse=False)
     saver = tf.train.Saver()
     checkpoint_root = tf.train.latest_checkpoint(models_dir,latest_filename=None)
@@ -122,7 +120,6 @@ def test(model):
             sess.run(tf.global_variables_initializer())
 
         images = sess.run(sample)
-        #images = (images + 1.0) / 2.0
 
         for i in range(images.shape[0]):
             tmpName = '{}/test_image{}.png'.format(samples_dir, i)

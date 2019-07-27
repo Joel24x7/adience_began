@@ -75,15 +75,10 @@ def get_img_path_list():
     return img_names
 
 def format_img(file_name):
-    #Open Image
     image = Image.open(file_name)
-    #Resize/Crop
     image = ImageOps.fit(image, (image_size, image_size))
-    #Convert to numpy array  
     image_arr = np.asarray(image, dtype=float)  
-    #Normalize
     image_arr = (image_arr/(255*0.5)) - 1.0
-    #return arr
     return image_arr
 
 def save_to_h5py():
@@ -102,7 +97,6 @@ def save_to_h5py():
 
 if __name__ == '__main__':
     save_to_h5py()
-
     test = get_list_from_h5py()
     count = 10
     for i in range(count):

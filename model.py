@@ -69,7 +69,7 @@ class Began(object):
             # sub1 = subsample(conv=conv2)
             sub1 = strided_conv_subsample(conv2, self.num_filters, scope='sub1')
             conv3 = conv_layer(input_layer=sub1, layer_depth=self.num_filters*2, scope='enc3')
-            conv3 = tf.nn.relu(conv3)
+            conv3 = tf.nn.elu(conv3)
             conv4 = conv_layer(input_layer=conv3, layer_depth=self.num_filters*2, scope='enc4')
             conv4 = tf.nn.elu(conv4)
 
@@ -88,7 +88,6 @@ class Began(object):
             tf.nn.elu(conv8)
 
             encoder_output = dense_layer(input_layer=conv8, units=self.noise_dim, scope='encoder_output')
-            # encoder_output = tf.nn.tanh(dense9)
             return encoder_output
 
     def generator(self, noise, reuse=False):
