@@ -20,7 +20,7 @@ def train(model, epochs=100):
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
 
-    if not os.path.exists(data_name):
+    if not os.path.exists("{}.h5".format(data_name)):
         raise Exception('Prepare Data first')
 
     #Setup model
@@ -91,12 +91,12 @@ def train(model, epochs=100):
 
                     images = sess.run(sample)
                     for i in range(images.shape[0]):
-                        tmp_name = '{}/train_image{}.png'.format(samples_dir, curr_step)
+                        tmp_name = '{}/train_{}_{}.png'.format(samples_dir, curr_step, i)
                         img = images[i, :, :, :]
                         plt.imshow(img)
                         plt.savefig(tmp_name)
 
-                        x_name = '{}/data_image{}.png'.format(samples_dir, curr_step)
+                        x_name = '{}/data_{}_{}.png'.format(samples_dir, curr_step, i)
                         data_img = batch_data[i, :, :, :]
                         plt.imshow(data_img)
                         plt.savefig(x_name)

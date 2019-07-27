@@ -101,7 +101,7 @@ if __name__ == '__main__':
     count = 10
     for i in range(count):
         plt.subplot(2, count // 2, i+1)
-        plt.imshow(test[i])
+        plt.imshow(test[i + 100])
         plt.axis('off')
     plt.tight_layout()
     plt.show()
