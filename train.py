@@ -96,10 +96,10 @@ def train(model, epochs=100):
                         plt.imshow(img)
                         plt.savefig(tmp_name)
 
-                        x_name = '{}/data_{}_{}.png'.format(samples_dir, curr_step, i)
-                        data_img = batch_data[i, :, :, :]
-                        plt.imshow(data_img)
-                        plt.savefig(x_name)
+                        #x_name = '{}/data_{}_{}.png'.format(samples_dir, curr_step, i)
+                        #data_img = batch_data[i, :, :, :]
+                        #plt.imshow(data_img)
+                        #plt.savefig(x_name)
                 
 def test(model):
 
