@@ -96,6 +96,12 @@ def train(model, epochs=100):
                         plt.imshow(img)
                         plt.savefig(tmp_name)
 
+                        # Uncomment to see training images too
+                        # x_name = '{}/data_{}_{}.png'.format(samples_dir, curr_step, i)
+                        # data_img = batch_data[i, :, :, :]
+                        # plt.imshow(data_img)
+                        # plt.savefig(x_name)
+
                 
 def test(model):
 
@@ -121,11 +127,6 @@ def test(model):
             img = images[i, :, :, :]
             plt.imshow(img)
             plt.savefig(tmpName)
-
-            x_name = '{}/data_{}_{}.png'.format(samples_dir, curr_step, i)
-            data_img = batch_data[i, :, :, :]
-            plt.imshow(data_img)
-            plt.savefig(x_name)
 
 
 def setup_dirs(project_num):
