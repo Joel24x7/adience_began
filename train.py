@@ -9,8 +9,8 @@ import tensorflow as tf
 from data_prep import get_list_from_h5py
 from model import Began
 
-data_name = 'adience'
-project_num = 1.1
+data_name = 'celeb'
+project_num = 1.3
 
 def train(model, epochs=100):
 
