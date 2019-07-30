@@ -40,14 +40,8 @@ def upsample(conv, size):
 
 #Downsample with Strided Convolution
 def strided_conv_subsample(conv, filters, scope):
-    subsampled = conv_layer(input_layer=conv, layer_depth=filters, scope=scope)
+    subsampled = conv_layer(input_layer=conv, layer_depth=filters, stride=(2,2), scope=scope)
     return tf.nn.elu(subsampled)
-    
-def subsample(conv):
-    '''
-    deprecated
-    '''
-    return tf.nn.avg_pool(conv, ksize = (1,2,2,1), strides = (1,2,2,1), padding='SAME')
 
 #L1 Pixel-wise Loss for distributions
 def l1_loss(original_images, reconstructed_images):

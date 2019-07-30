@@ -21,7 +21,7 @@ def train(model, epochs=100):
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
 
     if not os.path.exists("{}.h5".format(data_name)):
-        raise Exception('Prepare Data first')
+        raise Exception('Data unavailable. Run data_prep.py first')
 
     #Setup model
     x, z, lr, kt = model.initInputs()
@@ -40,7 +40,7 @@ def train(model, epochs=100):
     #hyperparameters
     lrate = 0.00008
     lambda_kt = 0.001
-    gamma = 0.4
+    gamma = 0.5
     kt_var = 0.0
     epoch_drop = 3
 
@@ -96,10 +96,11 @@ def train(model, epochs=100):
                         plt.imshow(img)
                         plt.savefig(tmp_name)
 
-                        #x_name = '{}/data_{}_{}.png'.format(samples_dir, curr_step, i)
-                        #data_img = batch_data[i, :, :, :]
-                        #plt.imshow(data_img)
-                        #plt.savefig(x_name)
+                        # Uncomment to view training images as well
+                        # x_name = '{}/data_{}_{}.png'.format(samples_dir, curr_step, i)
+                        # data_img = batch_data[i, :, :, :]
+                        # plt.imshow(data_img)
+                        # plt.savefig(x_name)
                 
 def test(model):
 
@@ -107,7 +108,6 @@ def test(model):
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
 
     #Setup model
-    # _, z, _, _ = model.initInputs()
     sample = model.get_sample(reuse=False)
     saver = tf.train.Saver()
     checkpoint_root = tf.train.latest_checkpoint(models_dir,latest_filename=None)
