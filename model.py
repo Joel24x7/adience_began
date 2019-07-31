@@ -4,7 +4,7 @@ from layers import *
 class Began(object):
     def __init__(self):
         self.batch_size = 16
-        self.noise_dim = 128
+        self.noise_dim = 64 #128
         self.image_size = 64
         self.image_depth = 3
         self.num_filters = 128
@@ -15,7 +15,7 @@ class Began(object):
         lr = tf.placeholder(tf.float32, [], name='learning_rate')
         kt = tf.placeholder(tf.float32, [], name='equilibrium_term')
         return x, z, lr, kt
-    
+
     def decoder(self, input, scope_name, reuse=False):
         with tf.variable_scope(scope_name) as scope:
             if reuse:
@@ -48,8 +48,8 @@ class Began(object):
             conv8 = tf.nn.elu(conv8)
 
             conv9 = conv_layer(input_layer=conv8, layer_depth=3, scope='decoder_image')
-            decoder_output = tf.nn.tanh(conv9)
-            return decoder_output
+            # decoder_output = tf.nn.tanh(conv9)
+            return conv9
 
     def encoder(self, images, scope_name, reuse=False):
 
@@ -66,21 +66,18 @@ class Began(object):
             conv2 = conv_layer(input_layer=conv1, layer_depth=self.num_filters, scope='enc2')
             conv2 = tf.nn.elu(conv2)
 
-            # sub1 = subsample(conv=conv2)
             sub1 = strided_conv_subsample(conv2, self.num_filters, scope='sub1')
             conv3 = conv_layer(input_layer=sub1, layer_depth=self.num_filters*2, scope='enc3')
             conv3 = tf.nn.elu(conv3)
             conv4 = conv_layer(input_layer=conv3, layer_depth=self.num_filters*2, scope='enc4')
             conv4 = tf.nn.elu(conv4)
 
-            # sub2 = subsample(conv=conv4)
             sub2 = strided_conv_subsample(conv4, self.num_filters*2, scope='sub2')
             conv5 = conv_layer(input_layer=sub2, layer_depth=self.num_filters*3, scope='enc5')
             tf.nn.elu(conv5)
             conv6 = conv_layer(input_layer=conv5, layer_depth=self.num_filters*3, scope='enc6')
             tf.nn.elu(conv6)
 
-            # sub3 = subsample(conv=conv6)
             sub3 = strided_conv_subsample(conv6, self.num_filters*3, scope='sub3')
             conv7 = conv_layer(input_layer=sub3, layer_depth=self.num_filters*4, scope='enc7')
             tf.nn.elu(conv6)
