@@ -49,7 +49,8 @@ def train(model, epochs=100):
     tf.summary.scalar('convergence', m_global)
     tf.summary.scalar('kt', kt)
     merged = tf.summary.merge_all()
-    saver = tf.train.Saver()
+    tf.reset_default_graph()
+    saver = tf.train.Saver(max_to_keep=2, keep_checkpoint_every_n_hours=2)
     checkpoint_root = tf.train.latest_checkpoint(models_dir,latest_filename=None)
 
     with tf.Session() as sess:
@@ -102,6 +103,11 @@ def train(model, epochs=100):
                         # plt.imshow(data_img)
                         # plt.savefig(x_name)
 
+        summary = sess.run(merged, feed_dict)
+        train_writer.add_summary(summary, curr_step)
+        saver.save(sess, './{}/began'.format(models_dir), global_step = epoch)
+
+
                 
 def test(model):
 
@@ -110,7 +116,7 @@ def test(model):
 
     #Setup model
     sample = model.get_sample(5, reuse=False)
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(max_to_keep=2, keep_checkpoint_every_n_hours=2)
     checkpoint_root = tf.train.latest_checkpoint(models_dir,latest_filename=None)
 
     with tf.Session() as sess:
