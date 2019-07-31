@@ -7,4 +7,5 @@ if __name__ == '__main__':
     model = Began()
     with tf.device('/gpu:0'):
         config = tf.ConfigProto(allow_soft_placement=True)
-        train(model, 1)
+        with tf.Graph().as_default():
+            train(model, 1)
