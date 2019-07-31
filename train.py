@@ -6,19 +6,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-from data_prep import get_list_from_h5py
+from data_prep import get_list_from_h5py, save_to_h5py
 from model import Began
 
 data_name = 'celeb'
-project_num = 1.3
+project_num = 1.4
 
 def train(model, epochs=100):
 
-    np.random.RandomState(123)
-    tf.set_random_seed(123)
+    # np.random.RandomState(123)
+    # tf.set_random_seed(123)
 
+    '''
+    Setup Graph
+    '''
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
+    checkpoint_root = tf.train.latest_checkpoint(models_dir,latest_filename=None)
+    if checkpoint_root != None:
+        tf.reset_default_graph()
 
     if not os.path.exists("{}.h5".format(data_name)):
         raise Exception('Data unavailable. Run data_prep.py first')
@@ -27,53 +33,58 @@ def train(model, epochs=100):
     x, z, lr, kt = model.initInputs()
     dis_loss, gen_loss, d_x_loss, d_z_loss = model.loss(x, z, kt)
     dis_opt, gen_opt = model.optimizer(dis_loss, gen_loss, lr)
+
+    #For saving sample images during training or in test
     sample = model.get_sample(3)
 
-    #Setup data
+    #Setup data 
     data = get_list_from_h5py(data_name)
     start_time = time.time()
-
-    #Setup inputs
     batch_size = model.batch_size
     num_batches_per_epoch = len(data) // batch_size
+    global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=False)
 
     #hyperparameters
-    lrate = 0.00008
+    inital_lr = 0.00008
     lambda_kt = 0.001
     gamma = 0.5
     kt_var = 0.0
-    epoch_drop = 3
+    epoch_drop = 350
 
     #Tensorboard
     m_global = d_x_loss + tf.abs(gamma * d_x_loss - d_z_loss)
     tf.summary.scalar('convergence', m_global)
     tf.summary.scalar('kt', kt)
     merged = tf.summary.merge_all()
-    # tf.reset_default_graph()
-    saver = tf.train.Saver()
-    checkpoint_root = tf.train.latest_checkpoint(models_dir,latest_filename=None)
 
-    with tf.Session() as sess:
+    init_op = tf.global_variables_initializer()
+    saver = tf.train.Saver()
+
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth=True
+    config.log_device_placement=True
+    with tf.Session(config=config) as sess:
         train_writer = tf.summary.FileWriter('./{}'.format(logs_dir), sess.graph)
 
         #Load previous training
         if checkpoint_root != None:
             saver.restore(sess, checkpoint_root)
         else:
-            sess.run(tf.global_variables_initializer())
+            sess.run(init_op)
         
         for epoch in range(epochs):
 
             np.random.shuffle(data)
-            learning_rate = lrate * math.pow(0.2, epoch+1 // epoch_drop)
+            learning_rate = inital_lr * math.pow(0.5, epoch+1 // epoch_drop)
 
             for batch_step in range(num_batches_per_epoch):
 
                 #Prep batch
+                global_step += 1
                 start_data_batch = batch_step * batch_size
                 end_data_batch = start_data_batch + batch_size
                 batch_data = data[start_data_batch:end_data_batch, :, :, :]
-                z_batch = np.random.uniform(-1,1,size=[batch_size, model.noise_dim])
+                z_batch = np.random.uniform(-1, 1, size=[batch_size, model.noise_dim])
 
                 feed_dict={x: batch_data, z: z_batch, lr: learning_rate, kt: kt_var}
                 _, real_loss = sess.run([dis_opt, d_x_loss], feed_dict=feed_dict)
@@ -82,17 +93,16 @@ def train(model, epochs=100):
                 kt_var = np.minimum(1.0, np.maximum(kt_var + lambda_kt * (gamma * real_loss - fake_loss), 0.0))
                 convergence = real_loss + np.abs(gamma * real_loss - fake_loss)
 
-                curr_step = epoch * num_batches_per_epoch + batch_step
-                print('Time: {} Epoch: {} {}/{} convergence: {:.4} kt: {:.4}'.format(int(time.time() - start_time), epoch, batch_step, num_batches_per_epoch, convergence, kt_var))
+                print('Time: {} Epoch: {} Global Step: {} - {}/{} convergence: {:.4} kt: {:.4}'.format(int(time.time() - start_time), epoch, global_step, batch_step, num_batches_per_epoch, convergence, kt_var))
 
-                if curr_step % 500 == 0:
+                if global_step % 500 == 0:
                     summary = sess.run(merged, feed_dict)
-                    train_writer.add_summary(summary, curr_step)
-                    saver.save(sess, './{}/began'.format(models_dir), global_step = epoch)
+                    train_writer.add_summary(summary, global_step)
+                    saver.save(sess, './{}/began'.format(models_dir), global_step=global_step)
 
                     images = sess.run(sample)
                     for i in range(images.shape[0]):
-                        tmp_name = '{}/train_{}_{}.png'.format(samples_dir, curr_step, i)
+                        tmp_name = '{}/train_{}_{}.png'.format(samples_dir, global_step, i)
                         img = images[i, :, :, :]
                         plt.imshow(img)
                         plt.savefig(tmp_name)
@@ -104,30 +114,32 @@ def train(model, epochs=100):
                         # plt.savefig(x_name)
 
         summary = sess.run(merged, feed_dict)
-        train_writer.add_summary(summary, curr_step)
-        saver.save(sess, './{}/began'.format(models_dir), global_step = epoch)
+        train_writer.add_summary(summary, global_step)
+        saver.save(sess, './{}/began'.format(models_dir), global_step=global_step)
+        train_writer.close()
 
-
-                
 def test(model):
 
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
 
     #Setup model
-    sample = model.get_sample(5, reuse=False)
-    saver = tf.train.Saver()
     checkpoint_root = tf.train.latest_checkpoint(models_dir,latest_filename=None)
+    if checkpoint_root != None:
+        tf.reset_default_graph()
+
+    sample = model.get_sample(5, reuse=False)
+    init_op = tf.global_variables_initializer()
+    saver = tf.train.Saver()
 
     with tf.Session() as sess:
 
         if checkpoint_root != None:
             saver.restore(sess, checkpoint_root)
         else:
-            sess.run(tf.global_variables_initializer())
+            sess.run(init_op)
 
         images = sess.run(sample)
-
         for i in range(images.shape[0]):
             tmpName = '{}/test_image{}.png'.format(samples_dir, i)
             img = images[i, :, :, :]
