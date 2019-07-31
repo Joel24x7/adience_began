@@ -5,5 +5,4 @@ from train import test
 if __name__ == '__main__':
 
     model = Began()
-    with tf.Graph().as_default():
-        test(model)
+    test(model)
