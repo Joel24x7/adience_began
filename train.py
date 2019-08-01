@@ -9,7 +9,7 @@ import tensorflow as tf
 from data_prep import get_list_from_h5py, save_to_h5py
 from model import Began
 
-data_name = 'celeb'
+data_name = 'adience'
 project_num = 1.8
 
 def train(model, epochs=100):
@@ -81,6 +81,13 @@ def train(model, epochs=100):
             np.random.shuffle(data)
             learning_rate = inital_lr * math.pow(0.5, epoch+1 // epoch_drop)
 
+            #Save img from dataset for comparison
+            x_name = '{}/data_{}_{}.png'.format(samples_dir, epoch)
+            data_img = data[epoch, :, :, :]
+            plt.imshow(data_img)
+            plt.savefig(x_name)
+
+
             for batch_step in range(num_batches_per_epoch):
 
                 #Prep batch
@@ -111,18 +118,12 @@ def train(model, epochs=100):
                         plt.imshow(img)
                         plt.savefig(tmp_name)
 
-                        # Uncomment to see training images too
-                        # x_name = '{}/data_{}_{}.png'.format(samples_d ir, curr_step, i)
-                        # data_img = batch_data[i, :, :, :]
-                        # plt.imshow(data_img)
-                        # plt.savefig(x_name)
-
         summary = sess.run(merged, feed_dict)
         train_writer.add_summary(summary, global_step.eval())
         saver.save(sess, './{}/began'.format(models_dir), global_step=global_step)
         train_writer.close()
 
-def test(model):
+def test(model, samples=5):
 
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
@@ -132,7 +133,7 @@ def test(model):
     if checkpoint_root != None:
         tf.reset_default_graph()
 
-    sample = model.get_sample(7, reuse=False)
+    sample = model.get_sample(samples, reuse=False)
     init_op = tf.global_variables_initializer()
     saver = tf.train.Saver()
 

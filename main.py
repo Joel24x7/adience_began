@@ -3,6 +3,10 @@ from train import test, train
 from model import Began
 
 if __name__=='__main__':
-    model = Began()
-    train(model, 1)
-    test(model)
+
+    #100 epochs
+    #Stopping and starting training seems to help improve sample quality
+    for i in range(10):
+        model = Began()
+        train(model, epochs=10)
+        test(model, samples=15)
