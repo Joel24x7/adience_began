@@ -9,13 +9,24 @@ import tensorflow as tf
 from data_prep import get_list_from_h5py, save_to_h5py
 from model import Began
 
+'''
+train.py
+Define training (and testing) process for model
+'''
+
 data_name = 'adience'
 project_num = 1.8
 
 def train(model, epochs=100):
 
-    np.random.RandomState(123)
-    tf.set_random_seed(123)
+    '''
+    Setup graph and run session for training
+    Defaults to 100 epochs
+    Creates file structure as needed
+    '''
+
+    # np.random.RandomState(123)
+    # tf.set_random_seed(123)
 
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
@@ -69,7 +80,7 @@ def train(model, epochs=100):
         #Load previous training
         if checkpoint_root != None:
             saver.restore(sess, checkpoint_root)
-            print('\nRestored Previous Training\n')
+            print('\n ---- Restored Previous Training ---- \n')
             print("Starting at Global Step: {}".format(global_step.eval()))
         else:
             sess.run(init_op)
@@ -124,7 +135,9 @@ def train(model, epochs=100):
         train_writer.close()
 
 def test(model, samples=5):
-
+    '''
+    Generate samples from model
+    '''
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
 
@@ -155,7 +168,9 @@ def test(model, samples=5):
             plt.savefig(tmpName)
 
 def setup_dirs(project_num):
-
+    '''
+    Make folders for tensorboard summaries, generated samples, and checkpoints (respectively)
+    '''
     project_dir = '{}_began_{}'.format(data_name, project_num)
     logs_dir = '{}/logs_{}'.format(project_dir, project_num)
     samples_dir = '{}/results_{}'.format(project_dir, project_num)

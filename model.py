@@ -1,8 +1,20 @@
 import tensorflow as tf
 from layers import *
 
+'''
+model.py
+Defines Boundary Equilibrium GAN Architecture
+
+noise dim = h (embedding size) = 64
+num filters = n = 128
+Use elu activations
+No activation on outputs
+'''
+
 class Began(object):
+
     def __init__(self):
+        ''' Setup instance variables - hyperparameters'''
         self.batch_size = 16
         self.noise_dim = 64
         self.image_size = 64
@@ -10,6 +22,10 @@ class Began(object):
         self.num_filters = 128
     
     def initInputs(self):
+        '''
+        Create placeholders for train data (x), noise data (z), 
+        learning rate (lr), and equilibrium term (kt_)
+        '''
         x = tf.placeholder(tf.float32, [None, self.image_size, self.image_size, self.image_depth], name='input_data')
         z = tf.placeholder(tf.float32, [None, self.noise_dim], name='input_noise')
         lr = tf.placeholder(tf.float32, [], name='learning_rate')
@@ -17,6 +33,11 @@ class Began(object):
         return x, z, lr, kt
 
     def decoder(self, input, scope_name, reuse=False):
+        ''' 
+        Forward pass decoder
+        Four combos of 2 Conv Layers + 1 Upsample (nearest neighbors)
+        Also used as generator with new scope
+        '''
         with tf.variable_scope(scope_name) as scope:
             if reuse:
                 scope.reuse_variables()
@@ -51,7 +72,9 @@ class Began(object):
             return conv9
 
     def encoder(self, images, scope_name, reuse=False):
-
+        '''
+        Forward pass encoder
+        '''
         with tf.variable_scope(scope_name) as scope:
             if reuse:
                 scope.reuse_variables()
@@ -73,20 +96,23 @@ class Began(object):
 
             sub2 = strided_conv_subsample(conv4, self.num_filters*2, scope='sub2')
             conv5 = conv_layer(input_layer=sub2, layer_depth=self.num_filters*3, scope='enc5')
-            tf.nn.elu(conv5)
+            conv5 = tf.nn.elu(conv5)
             conv6 = conv_layer(input_layer=conv5, layer_depth=self.num_filters*3, scope='enc6')
-            tf.nn.elu(conv6)
+            conv6 = tf.nn.elu(conv6)
 
             sub3 = strided_conv_subsample(conv6, self.num_filters*3, scope='sub3')
             conv7 = conv_layer(input_layer=sub3, layer_depth=self.num_filters*4, scope='enc7')
-            tf.nn.elu(conv6)
+            conv7 = tf.nn.elu(conv7)
             conv8 = conv_layer(input_layer=conv7, layer_depth=self.num_filters*4, scope='enc8')
-            tf.nn.elu(conv8)
+            conv8 = tf.nn.elu(conv8)
 
             encoder_output = dense_layer(input_layer=conv8, units=self.noise_dim, scope='encoder_output')
             return encoder_output
 
     def generator(self, noise, reuse=False):
+        '''
+        Wrapper function for generator (calls decoder)
+        '''
         with tf.variable_scope('generator') as scope:
             if reuse:
                 scope.reuse_variables()
@@ -94,6 +120,9 @@ class Began(object):
         return dec
     
     def discriminator(self, image, reuse=False):
+        '''
+        Wrapper function for discriminator (calls encoder -> decoder)
+        '''
         with tf.variable_scope('discriminator') as scope:
             if reuse:
                 scope.reuse_variables()
@@ -102,6 +131,9 @@ class Began(object):
         return dec
 
     def loss(self, x, z, kt):
+        '''
+        Forward pass through placeholder parameters and compute losses
+        '''
         g_z = self.generator(z)
         d_x = self.discriminator(x)
         d_z = self.discriminator(g_z, reuse=True)
@@ -113,6 +145,9 @@ class Began(object):
         return dis_loss, gen_loss, d_x_loss, d_z_loss
 
     def optimizer(self, dis_loss, gen_loss, learning_rate):
+        '''
+        Setup Adam Optimizer with respective variable collections for discriminator and generator
+        '''
         dis_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='discriminator')
         gen_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='generator')
 
@@ -122,6 +157,9 @@ class Began(object):
         return dis_opt, gen_opt
 
     def get_sample(self, num_samples=-1, reuse=True):
+        '''
+        Generate samples from generator
+        '''
         if num_samples == -1:
             num_samples = self.batch_size
         noise = np.random.uniform(-1,1,size=[num_samples, self.noise_dim])
