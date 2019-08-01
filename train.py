@@ -93,7 +93,7 @@ def train(model, epochs=100):
             learning_rate = inital_lr * math.pow(0.5, epoch+1 // epoch_drop)
 
             #Save img from dataset for comparison
-            x_name = '{}/data_{}_{}.png'.format(samples_dir, epoch)
+            x_name = '{}/data_{}.png'.format(samples_dir, epoch)
             data_img = data[epoch, :, :, :]
             plt.imshow(data_img)
             plt.savefig(x_name)

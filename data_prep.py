@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
     #Prepare data
     name = 'adience_515'
-    save_to_h5py(name)
+    #save_to_h5py(name)
     test = get_list_from_h5py(name)
     print(np.amax(test))
     print(np.amin(test))
