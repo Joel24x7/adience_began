@@ -9,8 +9,8 @@ import tensorflow as tf
 from data_prep import get_list_from_h5py, save_to_h5py
 from model import Began
 
-data_name = 'adience'
-project_num = 1.4
+data_name = 'celeb'
+project_num = 1.7
 
 def train(model, epochs=100):
 
@@ -19,7 +19,7 @@ def train(model, epochs=100):
 
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
-    checkpoint_root = tf.train.latest_checkpoint(models_dir,latest_filename=None)
+    checkpoint_root = tf.train.latest_checkpoint(models_dir, latest_filename=None)
     if checkpoint_root != None:
         tf.reset_default_graph()
 

@@ -4,7 +4,7 @@ from layers import *
 class Began(object):
     def __init__(self):
         self.batch_size = 16
-        self.noise_dim = 128
+        self.noise_dim = 64
         self.image_size = 64
         self.image_depth = 3
         self.num_filters = 128
@@ -48,7 +48,6 @@ class Began(object):
             conv8 = tf.nn.elu(conv8)
 
             conv9 = conv_layer(input_layer=conv8, layer_depth=3, scope='decoder_image')
-            # decoder_output = tf.nn.tanh(conv9)
             return conv9
 
     def encoder(self, images, scope_name, reuse=False):
@@ -92,7 +91,6 @@ class Began(object):
             if reuse:
                 scope.reuse_variables()
             dec = self.decoder(noise, scope, reuse)
-            # activated_output = tf.nn.tanh(dec)
         return dec
     
     def discriminator(self, image, reuse=False):
