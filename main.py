@@ -1,11 +1,15 @@
 import tensorflow as tf
+import sys
 from train import test, train
 from model import Began
 
 if __name__=='__main__':
-    #100 epochs
-    #Stopping and starting training seems to help improve sample quality
-    # for i in range(10):
+
+    args = sys.argv
     model = Began()
-    train(model, epochs=100)
-    test(model, samples=15)
+
+    if len(args) == 2:
+        if args[1] == 'test':
+            test(model, samples=15)
+    else:
+        train(model, epochs=100)
