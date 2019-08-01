@@ -4,7 +4,7 @@ from layers import *
 class Began(object):
     def __init__(self):
         self.batch_size = 16
-        self.noise_dim = 64 #128
+        self.noise_dim = 128
         self.image_size = 64
         self.image_depth = 3
         self.num_filters = 128
@@ -92,7 +92,8 @@ class Began(object):
             if reuse:
                 scope.reuse_variables()
             dec = self.decoder(noise, scope, reuse)
-        return dec
+            activated_output = tf.nn.tanh(dec)
+        return activated_output
     
     def discriminator(self, image, reuse=False):
         with tf.variable_scope('discriminator') as scope:

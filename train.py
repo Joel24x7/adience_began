@@ -14,8 +14,8 @@ project_num = 1.4
 
 def train(model, epochs=100):
 
-    np.random.RandomState(123)
-    tf.set_random_seed(123)
+    # np.random.RandomState(123)
+    # tf.set_random_seed(123)
 
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
@@ -99,7 +99,7 @@ def train(model, epochs=100):
 
                 print('Time: {} Epoch: {} Global Step: {} - {}/{} convergence: {:.4} kt: {:.4}'.format(int(time.time() - start_time), epoch, int_step, batch_step, num_batches_per_epoch, convergence, sess_kt))
 
-                if int_step % 1 == 0:
+                if int_step % 300 == 0:
                     summary = sess.run(merged, feed_dict)
                     train_writer.add_summary(summary, int_step)
                     saver.save(sess, './{}/began'.format(models_dir), global_step=global_step)
@@ -141,11 +141,9 @@ def test(model):
         if checkpoint_root != None:
             saver.restore(sess, checkpoint_root)
             print('\nRestored Previous Training\n')
-            print("Starting at Global Step: {}".format(global_step.eval()))
 
         else:
             sess.run(init_op)
-            print("Starting at Global Step: {}".format(global_step.eval()))
 
 
         images = sess.run(sample)
