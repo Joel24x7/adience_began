@@ -92,8 +92,8 @@ class Began(object):
             if reuse:
                 scope.reuse_variables()
             dec = self.decoder(noise, scope, reuse)
-            activated_output = tf.nn.tanh(dec)
-        return activated_output
+            # activated_output = tf.nn.tanh(dec)
+        return dec
     
     def discriminator(self, image, reuse=False):
         with tf.variable_scope('discriminator') as scope:
