@@ -15,7 +15,7 @@ Define training (and testing) process for model
 '''
 
 data_name = 'adience'
-project_num = 1.8
+project_num = 2.1
 
 def train(model, epochs=100):
 
