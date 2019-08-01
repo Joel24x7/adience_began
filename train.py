@@ -14,8 +14,8 @@ project_num = 1.7
 
 def train(model, epochs=100):
 
-    # np.random.RandomState(123)
-    # tf.set_random_seed(123)
+    np.random.RandomState(123)
+    tf.set_random_seed(123)
 
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
