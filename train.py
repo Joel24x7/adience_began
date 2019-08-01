@@ -10,7 +10,7 @@ from data_prep import get_list_from_h5py, save_to_h5py
 from model import Began
 
 data_name = 'celeb'
-project_num = 1.7
+project_num = 1.8
 
 def train(model, epochs=100):
 
@@ -132,7 +132,7 @@ def test(model):
     if checkpoint_root != None:
         tf.reset_default_graph()
 
-    sample = model.get_sample(5, reuse=False)
+    sample = model.get_sample(7, reuse=False)
     init_op = tf.global_variables_initializer()
     saver = tf.train.Saver()
 
