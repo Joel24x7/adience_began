@@ -8,17 +8,18 @@ from PIL import Image, ImageOps
 import matplotlib.pyplot as plt
 
 #Constants
-root_dir = 'adience_data'
-image_dirs = 'faces'
-delete_folds = 'folds_to_delete'
-prefix = 'coarse_tilt_aligned_face'
-data_name='adience'
+data_dir = 'adience_data'
+face_dir = 'faces'
+folds_to_delete = 'folds_to_delete'
+minor_folds = '8_20_folds'
+img_prefix = 'coarse_tilt_aligned_face'
+data_name='adience820_515'
 image_size = 64
 
 #Helper Function to cleanup dataset directories
 def delete_landmark_files():
 
-    img_folders = glob.glob('{}/{}/*'.format(root_dir, image_dirs))
+    img_folders = glob.glob('{}/{}/*'.format(data_dir, face_dir))
 
     for folder in img_folders:
         file_names = glob.glob('{}/*'.format(folder))
@@ -28,7 +29,7 @@ def delete_landmark_files():
 
 def delete_old_images():
 
-    fold_files = glob.glob('{}/{}/*'.format(root_dir, delete_folds))
+    fold_files = glob.glob('{}/{}/*'.format(data_dir, folds_to_delete))
 
     for fold_csv in fold_files:
         print('Filtering: {}'.format(fold_csv))
@@ -39,14 +40,14 @@ def delete_old_images():
                     print('Skipping col headers')
                     continue
 
-                path = '{}/{}/{}/{}.*.{}'.format(root_dir, image_dirs, row[0], prefix, row[1])
+                path = '{}/{}/{}/{}.*.{}'.format(data_dir, face_dir, row[0], img_prefix, row[1])
                 img_name = glob.glob(path)
                 for img in img_name:
                     os.remove(img)
 
 def delete_emptied_dirs():
     
-    head = '{}/{}'.format(root_dir, image_dirs)
+    head = '{}/{}'.format(data_dir, face_dir)
     for _, dir, _ in os.walk(head):
         for folder in dir:
             path = '{}/{}'.format(head, folder)
@@ -58,31 +59,43 @@ def make_h5py_from_list(dataset, data_name=data_name):
     with h5py.File('{}.h5'.format(data_name), 'w') as hf:
             hf.create_dataset(data_name, data=dataset)
 
-def get_list_from_h5py(data_name=data_name):
-    with h5py.File('{}.h5'.format(data_name)) as file:
-        data = file[data_name]
-        data = np.array(data, dtype=np.float32)
-        return data
-
 def get_img_path_list():
-
     img_names = []
-    img_folders = '{}/{}/*'.format(root_dir, image_dirs)
+    img_folders = '{}/{}/*'.format(data_dir, face_dir)
     for folder in img_folders:
         curr_path_head = img_folders + '/' + folder
         imgs = glob.glob('{}/*'.format(curr_path_head))
         img_names.extend(imgs)
     return img_names
 
+def get_imgs_8_20():
+    img_paths = []
+    fold_files = glob.glob('{}/{}/*'.format(data_dir, minor_folds))
+    for fold_csv in fold_files:
+        print('Opening fold csv: {}'.format(fold_csv))
+        with open(fold_csv, newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            for img in reader:
+                print(img[2])
+                if 'user_id' in img[0]:
+                    print('Skipping col headers')
+                    continue
+                
+                img_path = '{}/{}/{}/{}.*.{}'.format(data_dir, face_dir, img[0], img_prefix, img[1])
+                img_name = glob.glob(img_path)
+                img_paths.extend(img_name)
+    return img_paths
+
 def format_img(file_name):
     image = Image.open(file_name)
     image = ImageOps.fit(image, (image_size, image_size))
     image_arr = np.asarray(image, dtype=float)  
     image_arr = (image_arr/(255*0.5)) - 1.0
+    image_arr += 0.5
     return image_arr
 
 def save_to_h5py():
-    paths = get_img_path_list()
+    paths = get_imgs_8_20()
     data_size = len(paths)
     dataset = np.zeros((data_size, image_size, image_size, 3))
     index = 0
@@ -95,13 +108,19 @@ def save_to_h5py():
     make_h5py_from_list(dataset)
     print('Data saved to {}.h5'.format(data_name))
 
+def get_list_from_h5py(data_name=data_name):
+    with h5py.File('{}.h5'.format(data_name)) as file:
+        data = file['adience']
+        data = np.array(data, dtype=np.float32)
+        return data
+
 if __name__ == '__main__':
-    save_to_h5py()
+    # save_to_h5py()
     test = get_list_from_h5py()
     count = 10
     for i in range(count):
         plt.subplot(2, count // 2, i+1)
-        plt.imshow(test[i + 100])
+        plt.imshow(test[i+50])
         plt.axis('off')
     plt.tight_layout()
     plt.show()
