@@ -105,7 +105,7 @@ def train(model, epochs=100):
                 start_data_batch = batch_step * batch_size
                 end_data_batch = start_data_batch + batch_size
                 batch_data = data[start_data_batch:end_data_batch, :, :, :]
-                z_batch = np.random.normal(-1, 1, size=[batch_size, model.noise_dim])
+                z_batch = np.random.uniform(-1, 1, size=[batch_size, model.noise_dim])
 
                 #Session run
                 fetches = [dis_opt, gen_opt, d_x_loss, d_z_loss, increment_step]

@@ -5,7 +5,7 @@ from layers import *
 model.py
 Defines Boundary Equilibrium GAN Architecture
 
-noise dim = h (embedding size) = 128
+noise dim = h (embedding size) = 64
 num filters = n = 128
 Use elu activations
 No activation on outputs
@@ -18,7 +18,7 @@ class Began(object):
         self.batch_size = 16
         self.image_size = 64
         self.image_depth = 3
-        self.noise_dim = 128
+        self.noise_dim = 64
         self.num_filters = 128
     
     def initInputs(self):
@@ -117,8 +117,8 @@ class Began(object):
             if reuse:
                 scope.reuse_variables()
             dec = self.decoder(noise, scope, reuse)
-            tanh_dec = tf.nn.tanh(dec)
-        return tanh_dec
+            # tanh_dec = tf.nn.tanh(dec)
+        return dec
     
     def discriminator(self, image, reuse=False):
         '''
@@ -163,7 +163,7 @@ class Began(object):
         '''
         if num_samples == -1:
             num_samples = self.batch_size
-        noise = np.random.normal(-1,1,size=[num_samples, self.noise_dim])
+        noise = np.random.uniform(-1,1,size=[num_samples, self.noise_dim])
         noise = np.float32(noise)
         images = self.generator(noise, reuse)
         return images
