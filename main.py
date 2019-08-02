@@ -20,4 +20,4 @@ if __name__=='__main__':
             test(model, samples=15)
     else:
         print('Training Model')
-        train(model, epochs=100)
+        train(model, epochs=12)

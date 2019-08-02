@@ -14,8 +14,8 @@ train.py
 Define training (and testing) process for model
 '''
 
-data_name = 'adience'
-project_num = 2.1
+data_name = 'celeb'
+project_num = 2.3
 
 def train(model, epochs=100):
 
@@ -25,8 +25,8 @@ def train(model, epochs=100):
     Creates file structure as needed
     '''
 
-    # np.random.RandomState(123)
-    # tf.set_random_seed(123)
+    np.random.RandomState(123)
+    tf.set_random_seed(123)
 
     #Setup file structure
     project_dir, logs_dir, samples_dir, models_dir = setup_dirs(project_num)
@@ -42,7 +42,7 @@ def train(model, epochs=100):
     lambda_kt = 0.001
     gamma = 0.5
     sess_kt = 0.0
-    epoch_drop = 350
+    epoch_drop = 3
 
     #Global Step
     global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(-1), trainable=False)
@@ -105,12 +105,14 @@ def train(model, epochs=100):
                 start_data_batch = batch_step * batch_size
                 end_data_batch = start_data_batch + batch_size
                 batch_data = data[start_data_batch:end_data_batch, :, :, :]
-                z_batch = np.random.uniform(-1, 1, size=[batch_size, model.noise_dim])
+                z_batch = np.random.normal(-1, 1, size=[batch_size, model.noise_dim])
 
+                #Session run
                 fetches = [dis_opt, gen_opt, d_x_loss, d_z_loss, increment_step]
                 feed_dict={x: batch_data, z: z_batch, lr: learning_rate, kt: sess_kt}
                 _, _, real_loss, fake_loss, int_step = sess.run(fetches=fetches, feed_dict=feed_dict)
 
+                #Step kt and recalculate convergence
                 balance = gamma * real_loss - fake_loss
                 sess_kt = np.minimum(1.0, np.maximum(sess_kt + lambda_kt * (balance), 0.0))
                 convergence = real_loss + np.abs(balance)
@@ -118,10 +120,12 @@ def train(model, epochs=100):
                 print('Time: {} Epoch: {} Global Step: {} - {}/{} convergence: {:.4} kt: {:.4}'.format(int(time.time() - start_time), epoch, int_step, batch_step, num_batches_per_epoch, convergence, sess_kt))
 
                 if int_step % 300 == 0:
+                    #Save checkpoints
                     summary = sess.run(merged, feed_dict)
                     train_writer.add_summary(summary, int_step)
                     saver.save(sess, './{}/began'.format(models_dir), global_step=global_step)
 
+                    #Save samples
                     images = sess.run(sample)
                     for i in range(images.shape[0]):
                         tmp_name = '{}/train_{}_{}.png'.format(samples_dir, int_step, i)
@@ -129,6 +133,7 @@ def train(model, epochs=100):
                         plt.imshow(img)
                         plt.savefig(tmp_name)
 
+        #Save checkpoints
         summary = sess.run(merged, feed_dict)
         train_writer.add_summary(summary, global_step.eval())
         saver.save(sess, './{}/began'.format(models_dir), global_step=global_step)
@@ -158,7 +163,6 @@ def test(model, samples=5):
 
         else:
             sess.run(init_op)
-
 
         images = sess.run(sample)
         for i in range(images.shape[0]):
